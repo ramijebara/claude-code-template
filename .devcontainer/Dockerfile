@@ -1,4 +1,4 @@
-FROM node:20
+FROM node:lts
 
 ARG TZ
 ENV TZ="$TZ"
@@ -54,6 +54,14 @@ RUN ARCH=$(dpkg --print-architecture) && \
   wget "https://github.com/dandavison/delta/releases/download/${GIT_DELTA_VERSION}/git-delta_${GIT_DELTA_VERSION}_${ARCH}.deb" && \
   sudo dpkg -i "git-delta_${GIT_DELTA_VERSION}_${ARCH}.deb" && \
   rm "git-delta_${GIT_DELTA_VERSION}_${ARCH}.deb"
+
+# Install .NET 9 and .NET 10 SDKs
+RUN wget https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && \
+  dpkg -i packages-microsoft-prod.deb && \
+  rm packages-microsoft-prod.deb && \
+  apt-get update && \
+  apt-get install -y --no-install-recommends dotnet-sdk-9.0 dotnet-sdk-10.0 && \
+  apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Set up non-root user
 USER node
