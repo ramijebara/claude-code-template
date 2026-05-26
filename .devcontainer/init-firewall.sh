@@ -67,6 +67,7 @@ done < <(echo "$gh_ranges" | jq -r '(.web + .api + .git)[]' | aggregate -q)
 for domain in \
     "api.nuget.org" \
     "crates.io" \
+    "index.crates.io" \
     "fonts.googleapis.com" \
     "registry.npmjs.org" \
     "api.anthropic.com" \
