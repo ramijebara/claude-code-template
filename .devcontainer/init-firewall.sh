@@ -68,6 +68,7 @@ for domain in \
     "api.nuget.org" \
     "crates.io" \
     "index.crates.io" \
+    "docs.rs" \
     "fonts.googleapis.com" \
     "registry.npmjs.org" \
     "api.anthropic.com" \
