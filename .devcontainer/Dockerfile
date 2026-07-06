@@ -63,6 +63,24 @@ RUN wget https://packages.microsoft.com/config/debian/12/packages-microsoft-prod
   apt-get install -y --no-install-recommends dotnet-sdk-9.0 dotnet-sdk-10.0 && \
   apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Install Google Chrome for karma tests and Playwright MCP (Chromium on arm64, where Google Chrome is unavailable)
+RUN ARCH=$(dpkg --print-architecture) && \
+  if [ "$ARCH" = "amd64" ]; then \
+    curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg && \
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends google-chrome-stable && \
+    ln -s /usr/bin/google-chrome-stable /usr/local/bin/chrome; \
+  else \
+    apt-get update && \
+    apt-get install -y --no-install-recommends chromium && \
+    ln -s /usr/bin/chromium /usr/local/bin/chrome; \
+  fi && \
+  apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Used by karma-chrome-launcher and Playwright MCP (see .mcp.json)
+ENV CHROME_BIN=/usr/local/bin/chrome
+
 # Set up non-root user
 USER node
 
@@ -93,6 +111,9 @@ ENV PATH="/home/node/.cargo/bin:${PATH}"
 
 # Install Claude
 RUN npm install -g @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}
+
+# Install Playwright MCP (drives the system Chrome; registered in .mcp.json at the repo root)
+RUN npm install -g @playwright/mcp
 
 
 # Copy and set up firewall script
