@@ -26,6 +26,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   nano \
   vim \
   curl \
+  htop \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Ensure default node user has access to /usr/local/share
@@ -60,7 +61,7 @@ RUN wget https://packages.microsoft.com/config/debian/12/packages-microsoft-prod
   dpkg -i packages-microsoft-prod.deb && \
   rm packages-microsoft-prod.deb && \
   apt-get update && \
-  apt-get install -y --no-install-recommends dotnet-sdk-9.0 dotnet-sdk-10.0 && \
+  apt-get install -y --no-install-recommends dotnet-sdk-10.0 && \
   apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Google Chrome for karma tests and Playwright MCP (Chromium on arm64, where Google Chrome is unavailable)
@@ -92,13 +93,12 @@ ENV PATH=$PATH:/usr/local/share/npm-global/bin
 ENV SHELL=/bin/zsh
 
 # Set the default editor and visual
-ENV EDITOR=nano
-ENV VISUAL=nano
+ENV EDITOR=vim
+ENV VISUAL=vim
 
 # Default powerline10k theme
 ARG ZSH_IN_DOCKER_VERSION=1.2.0
 RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v${ZSH_IN_DOCKER_VERSION}/zsh-in-docker.sh)" -- \
-  -p git \
   -p fzf \
   -a "source /usr/share/doc/fzf/examples/key-bindings.zsh" \
   -a "source /usr/share/doc/fzf/examples/completion.zsh" \
