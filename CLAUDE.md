@@ -56,5 +56,5 @@ For multi-step tasks, state a brief plan:
 
 Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
 
-## 5. Do Not Commit Any Code Unless You Explicitly Get Permission
+## 5. Do Not `git commit` Any Changes Without Explicit Permission
 
