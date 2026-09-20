@@ -1,4 +1,4 @@
-FROM node:lts
+FROM node:lts-trixie
 
 ARG TZ
 ENV TZ="$TZ"
@@ -53,32 +53,27 @@ RUN mkdir -p /workspace /home/node/.claude && \
 WORKDIR /workspace
 
 ARG GIT_DELTA_VERSION=0.18.2
-RUN ARCH=$(dpkg --print-architecture) && \
-  wget "https://github.com/dandavison/delta/releases/download/${GIT_DELTA_VERSION}/git-delta_${GIT_DELTA_VERSION}_${ARCH}.deb" && \
-  sudo dpkg -i "git-delta_${GIT_DELTA_VERSION}_${ARCH}.deb" && \
-  rm "git-delta_${GIT_DELTA_VERSION}_${ARCH}.deb"
+RUN wget "https://github.com/dandavison/delta/releases/download/${GIT_DELTA_VERSION}/git-delta_${GIT_DELTA_VERSION}_amd64.deb" && \
+  dpkg -i "git-delta_${GIT_DELTA_VERSION}_amd64.deb" && \
+  rm "git-delta_${GIT_DELTA_VERSION}_amd64.deb"
 
-# Install .NET 9 and .NET 10 SDKs
-RUN wget https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && \
+# Install the .NET 10 SDK
+# The key bundled in packages-microsoft-prod.deb self-signs with SHA-1, which the sqv
+# verifier apt uses on trixie rejects; replace it with the current SHA-256 key.
+RUN wget https://packages.microsoft.com/config/debian/13/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && \
+  curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor --yes -o /usr/share/keyrings/microsoft-prod.gpg && \
   dpkg -i packages-microsoft-prod.deb && \
   rm packages-microsoft-prod.deb && \
   apt-get update && \
   apt-get install -y --no-install-recommends dotnet-sdk-10.0 && \
   apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install Google Chrome for karma tests and Playwright MCP (Chromium on arm64, where Google Chrome is unavailable)
-RUN ARCH=$(dpkg --print-architecture) && \
-  if [ "$ARCH" = "amd64" ]; then \
-    curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg && \
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends google-chrome-stable && \
-    ln -s /usr/bin/google-chrome-stable /usr/local/bin/chrome; \
-  else \
-    apt-get update && \
-    apt-get install -y --no-install-recommends chromium && \
-    ln -s /usr/bin/chromium /usr/local/bin/chrome; \
-  fi && \
+# Install Google Chrome for karma tests and Playwright MCP
+RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg && \
+  echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
+  apt-get update && \
+  apt-get install -y --no-install-recommends google-chrome-stable && \
+  ln -s /usr/bin/google-chrome-stable /usr/local/bin/chrome && \
   apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Used by karma-chrome-launcher and Playwright MCP (see .mcp.json)
